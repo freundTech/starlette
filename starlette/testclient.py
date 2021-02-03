@@ -131,7 +131,7 @@ class _ASGIAdapter(requests.adapters.HTTPAdapter):
                 subprotocols = []  # type: typing.Sequence[str]
             else:
                 subprotocols = [value.strip() for value in subprotocol.split(",")]
-            scope = {
+            websocket_scope = {
                 "type": "websocket",
                 "path": unquote(path),
                 "root_path": self.root_path,
@@ -142,10 +142,10 @@ class _ASGIAdapter(requests.adapters.HTTPAdapter):
                 "server": [host, port],
                 "subprotocols": subprotocols,
             }
-            session = WebSocketTestSession(self.app, scope)
+            session = WebSocketTestSession(self.app, websocket_scope)
             raise _Upgrade(session)
 
-        scope = {
+        app_scope = {
             "type": "http",
             "http_version": "1.1",
             "method": request.method,
@@ -237,7 +237,7 @@ class _ASGIAdapter(requests.adapters.HTTPAdapter):
             asyncio.set_event_loop(loop)
 
         try:
-            loop.run_until_complete(self.app(scope, receive, send))
+            loop.run_until_complete(self.app(app_scope, receive, send))
         except BaseException as exc:
             if self.raise_server_exceptions:
                 raise exc from None
